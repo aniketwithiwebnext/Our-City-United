@@ -1,0 +1,6 @@
+{
+  "name": "Our City United - Socorro Business Directory",
+  "description": "Official business directory and community portal for Our City United LLC in Socorro, Texas. Discover local businesses, events, news, and services.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
