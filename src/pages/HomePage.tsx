@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Sparkles, MapPin, Building2, Star, ArrowRight, ShieldCheck, Users, TrendingUp, CheckCircle, Award, Calendar, Newspaper, Phone } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Search, Sparkles, MapPin, Building2, Star, ArrowRight, ShieldCheck, Users, TrendingUp, CheckCircle, Award, Calendar, Newspaper, Phone, Volume2, VolumeX } from 'lucide-react';
 import { BusinessListing, BusinessCategory, LocalEvent, BlogPost } from '../types';
 
 interface HomePageProps {
@@ -29,6 +29,15 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [aiSearching, setAiSearching] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   const featuredListings = listings.filter((l) => l.featured);
 
@@ -61,8 +70,45 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   return (
     <div className="space-y-20 pb-16">
-      {/* HERO SECTION WITH AI SEARCH */}
-      <section className="relative pt-8 pb-14 overflow-hidden bg-gradient-to-br from-[#0B3D91] via-[#072252] to-[#0B3D91] text-white shadow-xl">
+      {/* HERO SECTION WITH AI SEARCH & BACKGROUND IMAGE */}
+      <section className="relative pt-10 pb-16 overflow-hidden bg-[#0B3D91] text-white shadow-xl">
+        {/* Background Video with Dark Blue Overlay */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted={isMuted}
+            playsInline
+            className="w-full h-full object-cover object-center opacity-75"
+          >
+            <source
+              src="https://tdgiygg822ke0ijm.public.blob.vercel-storage.com/Create_video_for_Our_City_202607240454.mp4"
+              type="video/mp4"
+            />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0B3D91]/40 via-[#072252]/35 to-[#0B3D91]/40" />
+        </div>
+
+        {/* Audio Mute/Unmute Toggle Button */}
+        <button
+          onClick={toggleMute}
+          className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-20 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white px-3.5 py-2 rounded-full text-xs font-bold flex items-center gap-2 border border-white/20 transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
+          aria-label={isMuted ? 'Unmute video audio' : 'Mute video audio'}
+        >
+          {isMuted ? (
+            <>
+              <VolumeX className="w-4 h-4 text-[#F4B400]" />
+              <span>Unmute Video</span>
+            </>
+          ) : (
+            <>
+              <Volume2 className="w-4 h-4 text-emerald-400" />
+              <span>Mute Video</span>
+            </>
+          )}
+        </button>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto space-y-6 text-center flex flex-col items-center">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F4B400] text-[#0B3D91] text-xs font-bold uppercase tracking-wider shadow-sm">

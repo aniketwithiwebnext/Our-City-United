@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, Grid, List, MapPin, Star, Phone, Globe, Heart, Sparkles, CheckCircle2, Clock, Map, ExternalLink } from 'lucide-react';
 import { BusinessListing, BusinessCategory } from '../types';
+import { DirectoryMap } from '../components/DirectoryMap';
 
 interface DirectoryPageProps {
   listings: BusinessListing[];
@@ -26,7 +27,7 @@ export const DirectoryPage: React.FC<DirectoryPageProps> = ({
   const [zipFilter, setZipFilter] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [openNowOnly, setOpenNowOnly] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
   const [showMapModal, setShowMapModal] = useState(false);
   const [selectedMapListing, setSelectedMapListing] = useState<BusinessListing | null>(null);
 
@@ -170,28 +171,46 @@ export const DirectoryPage: React.FC<DirectoryPageProps> = ({
           <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`p-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                 viewMode === 'grid' ? 'bg-[#0B3D91] text-white font-bold' : 'text-gray-600 hover:text-gray-900'
               }`}
               title="Grid View"
             >
               <Grid className="w-4 h-4" />
+              <span className="hidden sm:inline">Grid</span>
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`p-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                 viewMode === 'list' ? 'bg-[#0B3D91] text-white font-bold' : 'text-gray-600 hover:text-gray-900'
               }`}
               title="List View"
             >
               <List className="w-4 h-4" />
+              <span className="hidden sm:inline">List</span>
+            </button>
+            <button
+              onClick={() => setViewMode('map')}
+              className={`p-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                viewMode === 'map' ? 'bg-[#0B3D91] text-white font-bold' : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="Map View"
+            >
+              <Map className="w-4 h-4" />
+              <span className="hidden sm:inline">Map</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Directory Listings Grid / List Container */}
-      {filteredListings.length === 0 ? (
+      {/* Directory Listings Grid / List / Map Container */}
+      {viewMode === 'map' ? (
+        <DirectoryMap
+          listings={filteredListings}
+          onSelectListing={onSelectListing}
+          selectedListing={selectedMapListing}
+        />
+      ) : filteredListings.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-3xl border border-gray-200 shadow-sm space-y-3">
           <p className="text-gray-800 text-base font-semibold">No local businesses matched your search filters.</p>
           <p className="text-gray-500 text-xs">Try broadening your search term or selecting "All Categories".</p>
@@ -283,12 +302,25 @@ export const DirectoryPage: React.FC<DirectoryPageProps> = ({
                     </a>
                   </div>
 
-                  <button
-                    onClick={() => onSelectListing(listing)}
-                    className="w-full bg-[#0B3D91] hover:bg-[#072252] text-white font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-all text-center shadow-sm"
-                  >
-                    View Business Profile
-                  </button>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => onSelectListing(listing)}
+                      className="flex-1 bg-[#0B3D91] hover:bg-[#072252] text-white font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition-all text-center shadow-sm"
+                    >
+                      View Profile
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedMapListing(listing);
+                        setViewMode('map');
+                      }}
+                      className="bg-gray-100 hover:bg-[#F4B400] hover:text-[#0B3D91] text-gray-700 font-bold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition-all"
+                      title="View on Map"
+                    >
+                      <Map className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -334,16 +366,29 @@ export const DirectoryPage: React.FC<DirectoryPageProps> = ({
 
                   <p className="text-xs text-gray-600 line-clamp-2">{listing.description}</p>
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-1">
-                    <span className="flex items-center gap-1 text-[#0B3D91] font-medium">
-                      <MapPin className="w-3.5 h-3.5 text-[#F4B400]" /> {listing.address}, Socorro, TX {listing.zipCode}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 text-[#F4B400] fill-[#F4B400]" /> {listing.rating} ({listing.reviewCount} reviews)
-                    </span>
-                    <span className="flex items-center gap-1 text-gray-700">
-                      <Phone className="w-3.5 h-3.5 text-[#0B3D91]" /> {listing.phone}
-                    </span>
+                  <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-gray-500 pt-1">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <span className="flex items-center gap-1 text-[#0B3D91] font-medium">
+                        <MapPin className="w-3.5 h-3.5 text-[#F4B400]" /> {listing.address}, Socorro, TX {listing.zipCode}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Star className="w-3.5 h-3.5 text-[#F4B400] fill-[#F4B400]" /> {listing.rating} ({listing.reviewCount} reviews)
+                      </span>
+                      <span className="flex items-center gap-1 text-gray-700">
+                        <Phone className="w-3.5 h-3.5 text-[#0B3D91]" /> {listing.phone}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedMapListing(listing);
+                        setViewMode('map');
+                      }}
+                      className="bg-blue-50 hover:bg-[#F4B400] text-[#0B3D91] font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1 transition-all"
+                    >
+                      <Map className="w-3.5 h-3.5" /> View on Map
+                    </button>
                   </div>
                 </div>
               </div>
@@ -355,54 +400,32 @@ export const DirectoryPage: React.FC<DirectoryPageProps> = ({
       {/* MAP OVERVIEW MODAL */}
       {showMapModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-4xl p-6 space-y-4 relative shadow-2xl">
+          <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-5xl p-6 space-y-4 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-gray-200 pb-4">
               <h3 className="text-[#1A1A1A] font-bold text-lg font-heading flex items-center gap-2">
-                <Map className="w-5 h-5 text-[#0B3D91]" /> Socorro Texas Business Map Locations
+                <Map className="w-5 h-5 text-[#0B3D91]" /> Socorro Texas Interactive Google Map
               </h3>
               <button
                 onClick={() => setShowMapModal(false)}
-                className="text-gray-500 hover:text-gray-800 font-bold text-sm"
+                className="text-gray-500 hover:text-gray-800 font-bold text-sm px-2 py-1 rounded-lg hover:bg-gray-100"
               >
                 ✕ Close
               </button>
             </div>
 
-            {/* Interactive Simulated Google Map Canvas with pins */}
-            <div className="relative w-full h-80 sm:h-96 rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center p-4">
-              {/* Grid map overlay background */}
-              <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
-              
-              <div className="relative z-10 text-center space-y-2 max-w-md">
-                <span className="bg-amber-500/20 text-amber-400 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30">
-                  Socorro TX Coordinates: 31.6582° N, 106.2917° W
-                </span>
-                <p className="text-xs text-slate-300">
-                  Interactive pins loaded for {filteredListings.length} directory listings along Socorro Rd, Horizon Blvd, & North Loop Dr.
-                </p>
+            <DirectoryMap
+              listings={filteredListings}
+              onSelectListing={(b) => {
+                onSelectListing(b);
+                setShowMapModal(false);
+              }}
+              selectedListing={selectedMapListing}
+            />
 
-                {/* Pins preview */}
-                <div className="flex flex-wrap justify-center gap-2 pt-2">
-                  {filteredListings.slice(0, 6).map((b) => (
-                    <button
-                      key={b.id}
-                      onClick={() => {
-                        onSelectListing(b);
-                        setShowMapModal(false);
-                      }}
-                      className="bg-slate-900 hover:bg-amber-500 hover:text-slate-950 border border-amber-500/40 text-slate-200 text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
-                    >
-                      <MapPin className="w-3 h-3 text-amber-400" /> {b.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="text-right">
+            <div className="text-right pt-2 border-t border-gray-100">
               <button
                 onClick={() => setShowMapModal(false)}
-                className="bg-amber-500 text-slate-950 font-bold px-5 py-2 rounded-xl text-xs uppercase"
+                className="bg-[#0B3D91] text-white font-bold px-5 py-2 rounded-xl text-xs uppercase"
               >
                 Back To Directory
               </button>
